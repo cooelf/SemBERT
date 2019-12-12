@@ -65,7 +65,7 @@ If you use the original data <u>instead of</u> our preprocessed one by tag_model
 
 The SRL model in this implementation used the [ELMo-based SRL model](https://s3-us-west-2.amazonaws.com/allennlp/models/srl-model-2018.05.25.tar.gz)  from [AllenNLP](https://github.com/allenai/allennlp). 
 
-Recently, there is a new [BERT-based model](https://github.com/allenai/allennlp), which is a nice alternative. 
+Recently, there is a new [BERT-based model](https://s3-us-west-2.amazonaws.com/allennlp/models/bert-base-srl-2019.06.17.tar.gz), which is a nice alternative. 
 
 ### Reference
 
