@@ -2,6 +2,8 @@
 
 Pytorch codes for the paper **Semantics-aware BERT for Language Understanding** in AAAI 2020
 
+*working in progress
+
 ### **Overview**
 
 ![](SemBERT.png)
