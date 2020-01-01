@@ -1,6 +1,6 @@
 # Semantics-aware BERT for Language Understanding
 
-Pytorch codes for the paper **Semantics-aware BERT for Language Understanding** in AAAI 2020
+Codes for the paper **Semantics-aware BERT for Language Understanding** in AAAI 2020
 
 *working in progress
 
