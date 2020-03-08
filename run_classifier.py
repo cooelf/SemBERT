@@ -607,10 +607,10 @@ def convert_examples_to_features(examples, label_list, max_seq_length, tokenizer
     return features
 
 
-def transform_tag_features(features, tag_tokenizer, max_seq_length):
+def transform_tag_features(max_num_aspect, features, tag_tokenizer, max_seq_length):
     #now convert the tags into ids
     #print("vocab_size: ",len(tag_vocab))
-    max_num_aspect = 3
+    # max_num_aspect = 3
     new_features = []
     for example in features:
         token_tag_sequence_a = example.token_tag_sequence_a
@@ -705,6 +705,14 @@ def main():
     parser.add_argument("--tagger_path", default=None, type=str,
                         help="tagger_path for predictions if needing real-time tagging. Default: None, by loading pre-tagged data"
                              "For example, the trained models by AllenNLP")
+    parser.add_argument("--best_epochs",
+                        default=1.0,
+                        type=float,
+                        help="Best training epochs for prediction.")
+    parser.add_argument("--max_num_aspect",
+                        default=3,
+                        type=int,
+                        help="max_num_aspect")
 
     ## Other parameters
     parser.add_argument("--cache_dir",
@@ -857,7 +865,7 @@ def main():
         train_features = convert_examples_to_features(
             train_examples, label_list, args.max_seq_length, tokenizer,srl_predictor=srl_predictor )
         #TagTokenizer.make_tag_vocab("tag_vocab", tag_vocab)
-    tag_tokenizer = TagTokenizer("tag_vocab")
+    tag_tokenizer = TagTokenizer()
     vocab_size = len(tag_tokenizer.ids_to_tags)
     print("tokenizer vocab size: ", str(vocab_size))
     tag_config = TagConfig(tag_vocab_size=vocab_size,
@@ -865,7 +873,7 @@ def main():
                            layer_num=1,
                            output_dim=10,
                            dropout_prob=0.1,
-                           num_aspect=3)
+                           num_aspect=args.max_num_aspect)
     # Prepare model
     cache_dir = args.cache_dir if args.cache_dir else os.path.join(PYTORCH_PRETRAINED_BERT_CACHE, 'distributed_{}'.format(args.local_rank))
     model = BertForSequenceClassificationTag.from_pretrained(args.bert_model,
@@ -919,7 +927,7 @@ def main():
     best_epoch = 0
     best_result = 0.0
     if args.do_train:
-        train_features = transform_tag_features(train_features, tag_tokenizer, args.max_seq_length)
+        train_features = transform_tag_features(args.max_num_aspect, train_features, tag_tokenizer, args.max_seq_length)
 
         logger.info("***** Running training *****")
         logger.info("  Num examples = %d", len(train_examples))
@@ -942,7 +950,7 @@ def main():
             eval_examples = processor.get_dev_examples(args.data_dir)
             eval_features = convert_examples_to_features(
                 eval_examples, label_list, args.max_seq_length, tokenizer,srl_predictor=srl_predictor )
-            eval_features = transform_tag_features(eval_features, tag_tokenizer, args.max_seq_length)
+            eval_features = transform_tag_features(args.max_num_aspect, eval_features, tag_tokenizer, args.max_seq_length)
             logger.info("***** Running evaluation *****")
             logger.info("  Num examples = %d", len(eval_examples))
             logger.info("  Batch size = %d", args.eval_batch_size)
@@ -1080,11 +1088,107 @@ def main():
                         writer.write("Epoch: %s, %s = %s\n" % (str(epoch), key, str(result[key])))
             logger.info("best epoch: %s, result:  %s", str(best_epoch), str(best_result))
 
+    if args.do_eval:
+        for epoch in ["1"]:
+            # for epoch in trange(int(args.num_train_epochs), desc="Epoch"):
+            eval_examples = processor.get_dev_examples(args.data_dir)
+            eval_features = convert_examples_to_features(
+                eval_examples, label_list, args.max_seq_length, tokenizer, srl_predictor=srl_predictor)
+            eval_features = transform_tag_features(args.max_num_aspect, eval_features, tag_tokenizer,
+                                                   args.max_seq_length)
+
+            logger.info("***** Running evaluation *****")
+            logger.info("  Num examples = %d", len(eval_examples))
+            logger.info("  Batch size = %d", args.eval_batch_size)
+            all_input_ids = torch.tensor([f.input_ids for f in eval_features], dtype=torch.long)
+            all_input_mask = torch.tensor([f.input_mask for f in eval_features], dtype=torch.long)
+            all_segment_ids = torch.tensor([f.segment_ids for f in eval_features], dtype=torch.long)
+            all_label_ids = torch.tensor([f.label_id for f in eval_features], dtype=torch.long)
+            all_start_end_idx = torch.tensor([f.orig_to_token_split_idx for f in eval_features], dtype=torch.long)
+            all_input_tag_ids = torch.tensor([f.input_tag_ids for f in eval_features], dtype=torch.long)
+            eval_data = TensorDataset(all_input_ids, all_input_mask, all_segment_ids, all_start_end_idx,
+                                      all_input_tag_ids, all_label_ids)
+            # Run prediction for full data
+            eval_sampler = SequentialSampler(eval_data)
+            eval_dataloader = DataLoader(eval_data, sampler=eval_sampler, batch_size=args.eval_batch_size)
+
+            # epoch = 1
+            output_model_file = os.path.join(args.output_dir, str(epoch) + "_pytorch_model.bin")
+            model_state_dict = torch.load(output_model_file)
+            predict_model = BertForSequenceClassificationTag.from_pretrained(args.bert_model,
+                                                                             state_dict=model_state_dict,
+                                                                             num_labels=num_labels,
+                                                                             tag_config=tag_config)
+            predict_model.to(device)
+            predict_model.eval()
+            eval_loss, eval_accuracy = 0, 0
+            nb_eval_steps, nb_eval_examples = 0, 0
+            total_TP, total_FP, total_FN, total_TN = 0, 0, 0, 0
+            for input_ids, input_mask, segment_ids, start_end_idx, input_tag_ids, label_ids in tqdm(
+                    eval_dataloader, desc="Evaluating"):
+                input_ids = input_ids.to(device)
+                input_mask = input_mask.to(device)
+                segment_ids = segment_ids.to(device)
+                label_ids = label_ids.to(device)
+                start_end_idx = start_end_idx.to(device)
+                input_tag_ids = input_tag_ids.to(device)
+                with torch.no_grad():
+                    tmp_eval_loss = predict_model(input_ids, segment_ids, input_mask, start_end_idx, input_tag_ids,
+                                                  label_ids)
+                    logits = predict_model(input_ids, segment_ids, input_mask, start_end_idx, input_tag_ids,
+                                           None)
+                logits = logits.detach().cpu().numpy()
+                label_ids = label_ids.to('cpu').numpy()
+                tmp_eval_accuracy = accuracy(logits, label_ids)
+
+                eval_loss += tmp_eval_loss.mean().item()
+                eval_accuracy += tmp_eval_accuracy
+
+                nb_eval_examples += input_ids.size(0)
+                nb_eval_steps += 1
+
+            eval_loss = eval_loss / nb_eval_steps
+            eval_accuracy = eval_accuracy / nb_eval_examples
+            if eval_accuracy > best_result:
+                best_epoch = epoch
+                best_result = eval_accuracy
+            loss = tr_loss / nb_tr_steps if args.do_train else None
+            result = {'eval_loss': eval_loss,
+                      'eval_accuracy': eval_accuracy,
+                      'global_step': global_step,
+                      'loss': loss}
+            if task_name == "cola":
+                eval_mcc = mcc(total_pred, total_labels)
+                result["eval_mcc"] = eval_mcc
+            elif task_name == "mrpc" or task_name == "qqp":  # need F1 score
+                if total_TP + total_FP == 0:
+                    P = 0
+                else:
+                    P = total_TP / (total_TP + total_FP)
+                if total_TP + total_FN == 0:
+                    R = 0
+                else:
+                    R = total_TP / (total_TP + total_FN)
+                if P + R == 0:
+                    F1 = 0
+                else:
+                    F1 = 2.00 * P * R / (P + R)
+                result["Precision"] = P
+                result["Recall"] = R
+                result["F1 score"] = F1
+            output_eval_file = os.path.join(args.output_dir, "dev_results.txt")
+            with open(output_eval_file, "a") as writer:
+                logger.info("***** Eval results *****")
+                for key in sorted(result.keys()):
+                    logger.info("Epoch: %s,  %s = %s", str(epoch), key, str(result[key]))
+                    writer.write("Epoch: %s, %s = %s\n" % (str(epoch), key, str(result[key])))
+            logger.info("best epoch: %s, result:  %s", str(best_epoch), str(best_result))
+
     if args.do_predict:
         eval_examples = processor.get_test_examples(args.data_dir)
         eval_features = convert_examples_to_features(
             eval_examples, label_list, args.max_seq_length, tokenizer,srl_predictor=srl_predictor )
-        eval_features = transform_tag_features(eval_features, tag_tokenizer, args.max_seq_length)
+        eval_features = transform_tag_features(args.max_num_aspect, eval_features, tag_tokenizer, args.max_seq_length)
         logger.info("***** Running evaluation *****")
         logger.info("  Num examples = %d", len(eval_examples))
         logger.info("  Batch size = %d", args.eval_batch_size)

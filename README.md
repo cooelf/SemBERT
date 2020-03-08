@@ -1,8 +1,6 @@
-# Semantics-aware BERT for Language Understanding
+# SemBERT: Semantics-aware BERT for Language Understanding
 
-Codes for the paper **Semantics-aware BERT for Language Understanding** in AAAI 2020
-
-*working in progress
+Codes for the paper **[Semantics-aware BERT for Language Understanding](https://www.researchgate.net/publication/339301633_Semantics-aware_BERT_for_Language_Understanding)** in AAAI 2020
 
 ### **Overview**
 
@@ -22,26 +20,63 @@ We provide an example data sample in <u>glue_data/MNLI</u> to show how SemBERT w
 
 ## Instructions
 This repo shows the example implementation of SemBERT for NLU tasks.
-We basically used the pre-trained BERT uncased models so do not forget to pass the parameter `--do_lower_case`
-An example script is
+We basically used the pre-trained BERT uncased models so do not forget to pass the parameter `--do_lower_case`.
+
+The example script are as follows:
+
+**Train a model**
+
+Note: please replace the sample data with labeled data (use our labeled data or annotate your data following the instructions below).
 
 ```shell
 CUDA_VISIBLE_DEVICES=0 \
 python run_classifier.py \
---data_dir glue_data/MNLI/ \
---eval_batch_size 32 \
---max_seq_length 200 \
---bert_model bert-base-uncased \
---do_lower_case \
---task_name mnli \
+--data_dir glue_data/SNLI/ \
+--task_name snli \
+--train_batch_size 32 \
+--max_seq_length 128 \
+--bert_model bert-wwm-uncased \
+--learning_rate 2e-5 \
+--num_train_epochs 2 \
 --do_train \
 --do_eval \
---do_predict \
---output_dir glue/base_mnli \
---learning_rate 3e-5
+--do_lower_case \
+--max_num_aspect 3 \
+--output_dir glue/snli_model_dir
 ```
 
-The output pred file can be directly used for GLUE online submission and evaluation.
+**Evaluation**
+
+Both `run_classifier.py ` and  `run_snli_predict.py` can be used for evaluation, where the later is simplified for easy employment.
+
+Our trained SNLI model (reaching 91.9% test accuracy) can be accessed here.
+
+https://drive.google.com/open?id=1Yn-WCw1RaMxbDDNZRnoJCIGxMSAOu20_
+
+To use our trained SNLI model, please put the [SNLI model](https://drive.google.com/open?id=1Yn-WCw1RaMxbDDNZRnoJCIGxMSAOu20_) and the [SRL model](https://s3-us-west-2.amazonaws.com/allennlp/models/srl-model-2018.05.25.tar.gz) to the **snli_model_dir** and **srl_model_dir**, respectively.
+
+As shown in our example SNLI model, the folder of **snli_model_dir** should contain three files:
+
+*vocab.txt* and *bert_config.json* from the BERT model folder that are used for training your model;
+
+*pytorch_model.bin* that is the trained SNLI model.
+
+```shell
+CUDA_VISIBLE_DEVICES=0 \
+python run_snli_predict.py \
+--data_dir /share03/zhangzs/glue_data/SNLI \
+--task_name snli \
+--eval_batch_size 128 \
+--max_seq_length 128 \
+--max_num_aspect 3 \
+--do_eval \
+--do_lower_case \
+--bert_model snli_model_dir \
+--output_dir snli_model_dir \
+--tagger_path srl_model_dir
+```
+
+For prediction, use the flag: `--do_predict` for either the script `run_classifier.py` or `run_snli_predict.py`. The output pred file can be directly used for GLUE online submission and evaluation.
 
 We provde two kinds of semantic labeling method, 
 
