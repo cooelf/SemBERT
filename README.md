@@ -49,6 +49,26 @@ python run_classifier.py \
 
 Both `run_classifier.py ` and  `run_snli_predict.py` can be used for evaluation, where the later is simplified for easy employment.
 
+The major difference is that `run_classifier.py` takes labeled data as input, while `run_snli_predict.py` integrates the real-time semantic role labeling, so it uses the original raw data.
+
+**Evaluation using labeled data**
+
+```shell
+CUDA_VISIBLE_DEVICES=0 \
+python run_classifier.py \
+--data_dir glue_data/SNLI/ \
+--task_name snli \
+--eval_batch_size 128 \
+--max_seq_length 128 \
+--bert_model bert-wwm-uncased \
+--do_eval \
+--do_lower_case \
+--max_num_aspect 3 \
+--output_dir glue/snli_model_dir
+```
+
+**Evaluation using raw data (with real-time semantic role labeling) ** 
+
 Our trained SNLI model (reaching 91.9% test accuracy) can be accessed here.
 
 https://drive.google.com/open?id=1Yn-WCw1RaMxbDDNZRnoJCIGxMSAOu20_
@@ -78,7 +98,9 @@ python run_snli_predict.py \
 
 For prediction, use the flag: `--do_predict` for either the script `run_classifier.py` or `run_snli_predict.py`. The output pred file can be directly used for GLUE online submission and evaluation.
 
-We provde two kinds of semantic labeling method, 
+### Data annotation (Semantic role labeling)
+
+We provide two kinds of semantic labeling method, 
 
 * **online**: each word sequence are passed to label module to obtain the tags which could be used for online prediction. This would be time-consuming for large corpus. See  *tag_model/tagging.py*
 
