@@ -67,7 +67,7 @@ python run_classifier.py \
 --output_dir glue/snli_model_dir
 ```
 
-**Evaluation using raw data (with real-time semantic role labeling) ** 
+**Evaluation using raw data (with real-time semantic role labeling)** 
 
 Our trained SNLI model (reaching 91.9% test accuracy) can be accessed here.
 
