@@ -71,7 +71,7 @@ python run_classifier.py \
 
 Our trained SNLI model (reaching 91.9% test accuracy) can be accessed here.
 
-https://drive.google.com/open?id=1Yn-WCw1RaMxbDDNZRnoJCIGxMSAOu20_
+https://drive.google.com/drive/folders/1Yn-WCw1RaMxbDDNZRnoJCIGxMSAOu20_?usp=sharing
 
 To use our trained SNLI model, please put the [SNLI model](https://drive.google.com/open?id=1Yn-WCw1RaMxbDDNZRnoJCIGxMSAOu20_) and the [SRL model](https://s3-us-west-2.amazonaws.com/allennlp/models/srl-model-2018.05.25.tar.gz) to the **snli_model_dir** and **srl_model_dir**, respectively.
 
