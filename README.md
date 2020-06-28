@@ -6,7 +6,7 @@
 
 The POS tags are slightly different using different spaCy versions.  SemBERT used spacy==2.0.18 to obtain the verbs.
 
-Refer to [allenai/allennlp#3418](https://github.com/allenai/allennlp/issues/3418),  [cooelf/SemBERT#12](cooelf/SemBERT#12) (CHN).
+Refer to [allenai/allennlp#3418](https://github.com/allenai/allennlp/issues/3418),  [cooelf/SemBERT#12](https://github.com/cooelf/SemBERT/issues/12) (CHN).
 
 =========================================
 
