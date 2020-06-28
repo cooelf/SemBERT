@@ -8,6 +8,8 @@ The POS tags are slightly different using different spaCy versions.  SemBERT use
 
 Refer to [allenai/allennlp#3418](https://github.com/allenai/allennlp/issues/3418),  [cooelf/SemBERT#12](cooelf/SemBERT#12) (CHN).
 
+=========================================
+
 Codes for the paper **[Semantics-aware BERT for Language Understanding](https://www.researchgate.net/publication/339301633_Semantics-aware_BERT_for_Language_Understanding)** in AAAI 2020
 
 ### **Overview**
