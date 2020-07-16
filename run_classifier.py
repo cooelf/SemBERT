@@ -1089,8 +1089,8 @@ def main():
             logger.info("best epoch: %s, result:  %s", str(best_epoch), str(best_result))
 
     if args.do_eval:
-        for epoch in ["1"]:
-            # for epoch in trange(int(args.num_train_epochs), desc="Epoch"):
+        #for epoch in ["1"]:
+        for epoch in trange(int(args.num_train_epochs), desc="Epoch"):
             eval_examples = processor.get_dev_examples(args.data_dir)
             eval_features = convert_examples_to_features(
                 eval_examples, label_list, args.max_seq_length, tokenizer, srl_predictor=srl_predictor)
