@@ -1,12 +1,24 @@
 # SemBERT: Semantics-aware BERT for Language Understanding
 
-**(2020/06/20) Update: Tips for possible issues**
+**(2020/10/07) Update: Tips for possible issues**
 
-"SRL prediction mismatches the provided samples"
+1) *SRL prediction mismatches the provided samples*
 
 The POS tags are slightly different using different spaCy versions.  SemBERT used spacy==2.0.18 to obtain the verbs.
 
 Refer to [allenai/allennlp#3418](https://github.com/allenai/allennlp/issues/3418),  [cooelf/SemBERT#12](https://github.com/cooelf/SemBERT/issues/12) (CHN).
+
+2) *SRL is not a registered name for Model.*
+
+Please try pip install --pre allennlp-models
+
+3) Issues about AllenNLP
+
+If you encounter issues in the class or variables in AllenNLP, please try to use a lower version, e.g., 0.8.1. 
+
+Our experiment environment for reference:
+
+Python 3.6+ PyTorch (1.0.0) AllenNLP (0.8.1)
 
 =========================================
 
@@ -120,7 +132,14 @@ We provide two kinds of semantic labeling method,
 
   Our labeled data can be downloaded here for quick start.
 
-  [https://drive.google.com/file/d/1B-_IRWRvR67eLdvT6bM0b2OiyvySkO-x/view?usp=sharing](https://drive.google.com/file/d/1B-_IRWRvR67eLdvT6bM0b2OiyvySkO-x/view?usp=sharing)
+  Google Drive: [https://drive.google.com/file/d/1B-_IRWRvR67eLdvT6bM0b2OiyvySkO-x/view?usp=sharing](https://drive.google.com/file/d/1B-_IRWRvR67eLdvT6bM0b2OiyvySkO-x/view?usp=sharing)
+
+  Baidu Cloud:  
+
+  Link <https://pan.baidu.com/s/1EduMJAfEXet_9yCfVob9qA>
+  Password：sl7l
+
+  
 
 Note this repo is based on the offline version, so that the column id/index in the data-processor would be slightly different from the original, which is like this:
 
