@@ -14,7 +14,7 @@ Please try pip install --pre allennlp-models
 
 3) Issues about AllenNLP
 
-If you encounter issues in the class or variables in AllenNLP, please try to use a lower version, e.g., 0.8.1. 
+If you encounter issues about the class or variables in AllenNLP, please try to use a lower version, e.g., 0.8.1. 
 
 Our experiment environment for reference:
 
