@@ -1020,7 +1020,9 @@ class BertForSequenceClassificationTag(BertPreTrainedModel):
         else:
             sequence_output = bert_output
 
-        first_token_tensor = sequence_output[:, 0]
+        #first_token_tensor = sequence_output[:, 0]
+        first_token_tensor, pool_index = torch.max(sequence_output, dim=-1)
+
         pooled_output = self.pool(first_token_tensor)
         pooled_output = self.activation(pooled_output)
         pooled_output = self.dropout(pooled_output)
@@ -1124,7 +1126,8 @@ class BertForSequenceScoreTag(BertPreTrainedModel):
         else:
             sequence_output = bert_output
 
-        first_token_tensor = sequence_output[:, 0]
+        #first_token_tensor = sequence_output[:, 0]
+        first_token_tensor, pool_index = torch.max(sequence_output, dim=-1)
         pooled_output = self.pool(first_token_tensor)
         pooled_output = self.activation(pooled_output)
         pooled_output = self.dropout(pooled_output)
